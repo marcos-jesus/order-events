@@ -17,6 +17,19 @@ spring:
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: dev.marcosjesus.orderevents.order
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_events
+    username: order_events
+    password: order_events
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+
 server:
   port: 8080
 
