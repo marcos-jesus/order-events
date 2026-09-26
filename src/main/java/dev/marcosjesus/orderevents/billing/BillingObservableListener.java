@@ -37,7 +37,7 @@ public class BillingObservableListener {
                 .register(registry);
     }
 
-    @KafkaListener(id = "billing-service", topics = KafkaTopics.ORDER_CREATED, groupId = "billing-service",
+    @KafkaListener(id = "billing-service", clientIdPrefix = "billing-service", topics = KafkaTopics.ORDER_CREATED, groupId = "billing-service",
             containerFactory = "billingBatchContainerFactory")
     public void onOrderCreated(List<OrderCreatedEvent> events) {
         // payloads que o ErrorHandlingDeserializer não conseguiu ler chegam como null

@@ -47,7 +47,10 @@ public class BillingBatchKafkaConfig {
         factory.setBatchListener(true);
         factory.setConcurrency(CONCURRENCY);
         factory.setCommonErrorHandler(kafkaErrorHandler);
+        // Observation e o timer legado registram spring.kafka.listener com rótulos diferentes e o
+        // Prometheus descarta o segundo: com os dois ligados, os timers de inventory/notification somem.
         factory.getContainerProperties().setObservationEnabled(true);
+        factory.getContainerProperties().setMicrometerEnabled(false);
         return factory;
     }
 }
