@@ -2,6 +2,19 @@
 
 [![CI](https://github.com/marcos-jesus/order-events/actions/workflows/ci.yml/badge.svg)](https://github.com/marcos-jesus/order-events/actions/workflows/ci.yml)
 
+![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 3.3](https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?logo=springboot&logoColor=white)
+![Apache Kafka 3.8](https://img.shields.io/badge/Apache_Kafka-3.8-231F20?logo=apachekafka&logoColor=white)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-CC0200?logo=flyway&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)
+![Testcontainers](https://img.shields.io/badge/Testcontainers-9B1FE0?logo=testcontainers&logoColor=white)
+![JUnit 5](https://img.shields.io/badge/JUnit-5-25A162?logo=junit5&logoColor=white)
+![Micrometer](https://img.shields.io/badge/Micrometer-Prometheus-E6522C?logo=prometheus&logoColor=white)
+![Zabbix 7.0](https://img.shields.io/badge/Zabbix-7.0-D40000?logo=zabbix&logoColor=white)
+![Grafana 11](https://img.shields.io/badge/Grafana-11-F46800?logo=grafana&logoColor=white)
+
 Exemplo de arquitetura orientada a eventos com **Spring Boot 3 (Java 21)** e **Apache Kafka**:
 uma API REST publica um evento de domínio no Kafka, e três serviços independentes
 (`inventory-service`, `notification-service` e `billing-service`) consomem esse mesmo
