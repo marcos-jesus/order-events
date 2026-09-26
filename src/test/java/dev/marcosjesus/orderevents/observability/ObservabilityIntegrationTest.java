@@ -51,6 +51,7 @@ class ObservabilityIntegrationTest extends AbstractPostgresIntegrationTest {
             assertThat(scrape).contains("inventory-service", "notification-service", "billing-service");
             assertThat(scrape).contains("kafka_consumer_fetch_manager_records_lag_max");
             assertThat(scrape).contains("hikaricp_connections_active");
+            assertThat(scrape).contains("orders_dead_lettered_total");
         });
     }
 
