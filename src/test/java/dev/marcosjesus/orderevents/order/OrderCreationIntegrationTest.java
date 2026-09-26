@@ -1,6 +1,7 @@
 package dev.marcosjesus.orderevents.order;
 
 import dev.marcosjesus.orderevents.kafka.KafkaTopics;
+import dev.marcosjesus.orderevents.support.AbstractPostgresIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(partitions = 1, topics = {KafkaTopics.ORDER_CREATED, KafkaTopics.ORDER_CREATED_DLT})
-class OrderCreationIntegrationTest {
+class OrderCreationIntegrationTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -47,7 +49,7 @@ class OrderCreationIntegrationTest {
 
     @Test
     void publicaOEventoNoKafkaAoCriarUmPedido() throws InterruptedException {
-        var request = new CreateOrderRequest("teclado-mecanico", 2);
+        var request = new CreateOrderRequest("teclado-mecanico", 2, new BigDecimal("150.00"));
 
         ResponseEntity<OrderCreatedEvent> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/orders", request, OrderCreatedEvent.class);
@@ -57,6 +59,7 @@ class OrderCreationIntegrationTest {
         assertThat(published).isNotNull();
         assertThat(published.product()).isEqualTo("teclado-mecanico");
         assertThat(published.quantity()).isEqualTo(2);
+        assertThat(published.price()).isEqualByComparingTo("150.00");
 
         OrderCreatedEvent receivedFromTopic = collector.queue().poll(10, TimeUnit.SECONDS);
 
