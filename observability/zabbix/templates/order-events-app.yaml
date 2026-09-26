@@ -50,6 +50,22 @@ zabbix_export:
               expression: 'last(/Order Events App/order.health)<>"UP" or nodata(/Order Events App/order.health,3m)=1'
               name: 'order-events: aplicação fora do ar'
               priority: DISASTER
+        - uuid: '679a132ba589432284eccc1ccccd8811'
+          name: 'App: up'
+          type: DEPENDENT
+          key: order.up
+          delay: '0'
+          history: 7d
+          description: '1 quando /actuator/health responde UP, 0 caso contrário (usado nos dashboards).'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '^(UP)$'
+                - '1'
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.health
         - uuid: 'a22ba510f0c84f588ed6357719d7acb7'
           name: 'HTTP: requests/s'
           type: DEPENDENT
