@@ -56,12 +56,14 @@ app = dashboard("order-events-app", "Order Events — Aplicação", [
     panel(3, "Requests/s", APP, ["HTTP: requests/s"], 0, 4, unit="reqps"),
     panel(4, "Erros HTTP/s (4xx e 5xx)", APP, ["HTTP: 4xx/s", "HTTP: 5xx/s"], 12, 4, unit="reqps"),
     panel(5, "Latência HTTP (média e máxima)", APP, ["HTTP: avg latency", "HTTP: max latency"], 0, 12, unit="s"),
-    panel(6, "Itens processados/s por consumer", APP, ["/Listener .*: processed\\/s/"], 12, 12, unit="ops"),
+    panel(6, "Itens processados/s por consumer", APP,
+          ["/Listener .*: processed\\/s/", "Billing: persisted/s"], 12, 12, unit="ops"),
     panel(7, "Falhas/s por consumer", APP, ["/Listener .*: failed\\/s/"], 0, 20, unit="ops"),
     panel(8, "Lag por consumer", APP, ["/Consumer .*: lag max/"], 12, 20),
     panel(9, "Heap JVM e threads", APP, ["JVM: heap used"], 0, 28, unit="bytes"),
     panel(10, "Pool Hikari (ativas vs máximo)", APP,
           ["Hikari: active connections", "Hikari: max connections"], 12, 28),
+    panel(11, "Faturamento: tamanho do lote (máx.)", APP, ["Billing: batch size max"], 0, 36),
 ])
 
 db = dashboard("order-events-db", "Order Events — Banco", [

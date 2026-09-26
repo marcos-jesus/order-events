@@ -427,6 +427,36 @@
             "disableDataAlignment": false,
             "useZabbixValueMapping": false
           }
+        },
+        {
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "refId": "B",
+          "queryType": "0",
+          "group": {
+            "filter": "Order Events"
+          },
+          "host": {
+            "filter": "order-events-app"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Billing: persisted/s"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
         }
       ]
     },
@@ -661,6 +691,59 @@
           },
           "item": {
             "filter": "Hikari: max connections"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Faturamento: tamanho do lote (máx.)",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix"
+          },
+          "refId": "A",
+          "queryType": "0",
+          "group": {
+            "filter": "Order Events"
+          },
+          "host": {
+            "filter": "order-events-app"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Billing: batch size max"
           },
           "functions": [],
           "options": {
