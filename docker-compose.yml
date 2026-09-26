@@ -1,3 +1,8 @@
+# Sobe tudo: Kafka, Kafka UI, Postgres, a aplicação e a observabilidade (Zabbix + Grafana).
+# A observabilidade fica em docker-compose.observability.yml e também roda sozinha com `-f`.
+include:
+  - docker-compose.observability.yml
+
 services:
   kafka:
     image: apache/kafka:3.8.0
@@ -15,6 +20,11 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -38,6 +48,31 @@ services:
       POSTGRES_PASSWORD: order_events
     volumes:
       - order-events-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_events -d order_events"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    container_name: order-events-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_events
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      start_period: 40s
+      retries: 10
 
 volumes:
   order-events-postgres-data:
