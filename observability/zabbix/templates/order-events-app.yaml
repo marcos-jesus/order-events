@@ -239,6 +239,44 @@ zabbix_export:
                 - sum
           master_item:
             key: order.prometheus.raw
+        - uuid: 'e694a759301e4a7a9800d75fb7057c0c'
+          name: 'Billing: persisted/s'
+          type: DEPENDENT
+          key: order.billing.persisted.rate
+          delay: '0'
+          value_type: FLOAT
+          units: eps
+          description: 'Faturamentos gravados no banco por segundo (contados por item, não por lote).'
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - orders_billing_persisted_total
+                - value
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '401add0076c84d4e823660724038b917'
+          name: 'Billing: batch size max'
+          type: DEPENDENT
+          key: order.billing.batch.size.max
+          delay: '0'
+          value_type: FLOAT
+          description: 'Maior lote gravado na janela recente (limite: order-events.billing.batch-size).'
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - orders_billing_batch_size_max
+                - value
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.prometheus.raw
         - uuid: '3a78e6d3521149a8a7aa33e17f9550f2'
           name: 'DLT: messages total'
           type: DEPENDENT
@@ -272,6 +310,13 @@ zabbix_export:
             - type: PROMETHEUS_TO_JSON
               parameters:
                 - spring_kafka_listener_seconds_count
+          filter:
+            evaltype: AND_OR
+            conditions:
+              - macro: '{#LISTENER}'
+                value: '^billing-service$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: A
           lld_macro_paths:
             - lld_macro: '{#LISTENER}'
               path: $.labels.messaging_kafka_consumer_group
