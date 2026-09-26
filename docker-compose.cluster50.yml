@@ -1,0 +1,756 @@
+# Cluster Kafka de 50 brokers + 3 controllers KRaft dedicados (teste de volumetria).
+# Heap reduzido (256m) para caber em uma única máquina. Brokers no host: 10004..10053 (node id 4..53).
+x-common: &common
+  image: apache/kafka:3.8.0
+x-env: &env
+  CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx256m"
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+  KAFKA_MIN_INSYNC_REPLICAS: 2
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+  KAFKA_NUM_PARTITIONS: 50
+
+services:
+  controller-1:
+    <<: *common
+    container_name: c50-controller-1
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+
+  controller-2:
+    <<: *common
+    container_name: c50-controller-2
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+
+  controller-3:
+    <<: *common
+    container_name: c50-controller-3
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT
+
+  broker-4:
+    <<: *common
+    container_name: c50-broker-4
+    ports: ["10004:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-4:29092,EXTERNAL://localhost:10004
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-5:
+    <<: *common
+    container_name: c50-broker-5
+    ports: ["10005:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-5:29092,EXTERNAL://localhost:10005
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-6:
+    <<: *common
+    container_name: c50-broker-6
+    ports: ["10006:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 6
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-6:29092,EXTERNAL://localhost:10006
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-7:
+    <<: *common
+    container_name: c50-broker-7
+    ports: ["10007:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 7
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-7:29092,EXTERNAL://localhost:10007
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-8:
+    <<: *common
+    container_name: c50-broker-8
+    ports: ["10008:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 8
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-8:29092,EXTERNAL://localhost:10008
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-9:
+    <<: *common
+    container_name: c50-broker-9
+    ports: ["10009:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 9
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-9:29092,EXTERNAL://localhost:10009
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-10:
+    <<: *common
+    container_name: c50-broker-10
+    ports: ["10010:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 10
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-10:29092,EXTERNAL://localhost:10010
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-11:
+    <<: *common
+    container_name: c50-broker-11
+    ports: ["10011:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 11
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-11:29092,EXTERNAL://localhost:10011
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-12:
+    <<: *common
+    container_name: c50-broker-12
+    ports: ["10012:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 12
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-12:29092,EXTERNAL://localhost:10012
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-13:
+    <<: *common
+    container_name: c50-broker-13
+    ports: ["10013:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 13
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-13:29092,EXTERNAL://localhost:10013
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-14:
+    <<: *common
+    container_name: c50-broker-14
+    ports: ["10014:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 14
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-14:29092,EXTERNAL://localhost:10014
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-15:
+    <<: *common
+    container_name: c50-broker-15
+    ports: ["10015:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 15
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-15:29092,EXTERNAL://localhost:10015
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-16:
+    <<: *common
+    container_name: c50-broker-16
+    ports: ["10016:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 16
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-16:29092,EXTERNAL://localhost:10016
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-17:
+    <<: *common
+    container_name: c50-broker-17
+    ports: ["10017:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 17
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-17:29092,EXTERNAL://localhost:10017
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-18:
+    <<: *common
+    container_name: c50-broker-18
+    ports: ["10018:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 18
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-18:29092,EXTERNAL://localhost:10018
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-19:
+    <<: *common
+    container_name: c50-broker-19
+    ports: ["10019:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 19
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-19:29092,EXTERNAL://localhost:10019
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-20:
+    <<: *common
+    container_name: c50-broker-20
+    ports: ["10020:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 20
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-20:29092,EXTERNAL://localhost:10020
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-21:
+    <<: *common
+    container_name: c50-broker-21
+    ports: ["10021:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 21
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-21:29092,EXTERNAL://localhost:10021
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-22:
+    <<: *common
+    container_name: c50-broker-22
+    ports: ["10022:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 22
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-22:29092,EXTERNAL://localhost:10022
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-23:
+    <<: *common
+    container_name: c50-broker-23
+    ports: ["10023:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 23
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-23:29092,EXTERNAL://localhost:10023
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-24:
+    <<: *common
+    container_name: c50-broker-24
+    ports: ["10024:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 24
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-24:29092,EXTERNAL://localhost:10024
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-25:
+    <<: *common
+    container_name: c50-broker-25
+    ports: ["10025:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 25
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-25:29092,EXTERNAL://localhost:10025
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-26:
+    <<: *common
+    container_name: c50-broker-26
+    ports: ["10026:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 26
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-26:29092,EXTERNAL://localhost:10026
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-27:
+    <<: *common
+    container_name: c50-broker-27
+    ports: ["10027:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 27
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-27:29092,EXTERNAL://localhost:10027
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-28:
+    <<: *common
+    container_name: c50-broker-28
+    ports: ["10028:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 28
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-28:29092,EXTERNAL://localhost:10028
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-29:
+    <<: *common
+    container_name: c50-broker-29
+    ports: ["10029:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 29
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-29:29092,EXTERNAL://localhost:10029
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-30:
+    <<: *common
+    container_name: c50-broker-30
+    ports: ["10030:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 30
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-30:29092,EXTERNAL://localhost:10030
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-31:
+    <<: *common
+    container_name: c50-broker-31
+    ports: ["10031:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 31
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-31:29092,EXTERNAL://localhost:10031
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-32:
+    <<: *common
+    container_name: c50-broker-32
+    ports: ["10032:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 32
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-32:29092,EXTERNAL://localhost:10032
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-33:
+    <<: *common
+    container_name: c50-broker-33
+    ports: ["10033:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 33
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-33:29092,EXTERNAL://localhost:10033
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-34:
+    <<: *common
+    container_name: c50-broker-34
+    ports: ["10034:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 34
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-34:29092,EXTERNAL://localhost:10034
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-35:
+    <<: *common
+    container_name: c50-broker-35
+    ports: ["10035:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 35
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-35:29092,EXTERNAL://localhost:10035
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-36:
+    <<: *common
+    container_name: c50-broker-36
+    ports: ["10036:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 36
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-36:29092,EXTERNAL://localhost:10036
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-37:
+    <<: *common
+    container_name: c50-broker-37
+    ports: ["10037:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 37
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-37:29092,EXTERNAL://localhost:10037
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-38:
+    <<: *common
+    container_name: c50-broker-38
+    ports: ["10038:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 38
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-38:29092,EXTERNAL://localhost:10038
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-39:
+    <<: *common
+    container_name: c50-broker-39
+    ports: ["10039:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 39
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-39:29092,EXTERNAL://localhost:10039
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-40:
+    <<: *common
+    container_name: c50-broker-40
+    ports: ["10040:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 40
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-40:29092,EXTERNAL://localhost:10040
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-41:
+    <<: *common
+    container_name: c50-broker-41
+    ports: ["10041:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 41
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-41:29092,EXTERNAL://localhost:10041
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-42:
+    <<: *common
+    container_name: c50-broker-42
+    ports: ["10042:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 42
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-42:29092,EXTERNAL://localhost:10042
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-43:
+    <<: *common
+    container_name: c50-broker-43
+    ports: ["10043:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 43
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-43:29092,EXTERNAL://localhost:10043
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-44:
+    <<: *common
+    container_name: c50-broker-44
+    ports: ["10044:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 44
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-44:29092,EXTERNAL://localhost:10044
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-45:
+    <<: *common
+    container_name: c50-broker-45
+    ports: ["10045:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 45
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-45:29092,EXTERNAL://localhost:10045
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-46:
+    <<: *common
+    container_name: c50-broker-46
+    ports: ["10046:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 46
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-46:29092,EXTERNAL://localhost:10046
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-47:
+    <<: *common
+    container_name: c50-broker-47
+    ports: ["10047:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 47
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-47:29092,EXTERNAL://localhost:10047
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-48:
+    <<: *common
+    container_name: c50-broker-48
+    ports: ["10048:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 48
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-48:29092,EXTERNAL://localhost:10048
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-49:
+    <<: *common
+    container_name: c50-broker-49
+    ports: ["10049:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 49
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-49:29092,EXTERNAL://localhost:10049
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-50:
+    <<: *common
+    container_name: c50-broker-50
+    ports: ["10050:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 50
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-50:29092,EXTERNAL://localhost:10050
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-51:
+    <<: *common
+    container_name: c50-broker-51
+    ports: ["10051:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 51
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-51:29092,EXTERNAL://localhost:10051
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-52:
+    <<: *common
+    container_name: c50-broker-52
+    ports: ["10052:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 52
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-52:29092,EXTERNAL://localhost:10052
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  broker-53:
+    <<: *common
+    container_name: c50-broker-53
+    ports: ["10053:9092"]
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *env
+      KAFKA_NODE_ID: 53
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker-53:29092,EXTERNAL://localhost:10053
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: c50-kafka-ui
+    ports: ["8082:8080"]
+    depends_on: [broker-4]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: cluster-50-brokers
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker-4:29092,broker-5:29092,broker-6:29092
