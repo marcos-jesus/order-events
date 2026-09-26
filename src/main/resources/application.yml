@@ -21,6 +21,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/order_events
     username: order_events
     password: order_events
+    hikari:
+      data-source-properties:
+        # reescreve o batch em INSERT multi-linha (sem isso cada linha é uma ida ao banco)
+        reWriteBatchedInserts: true
 
   jpa:
     open-in-view: false
@@ -49,3 +53,8 @@ management:
   metrics:
     tags:
       application: order-events
+
+order-events:
+  billing:
+    # max.poll.records do consumer e tamanho do batch no Postgres (um poll = uma transação); máx. 10000
+    batch-size: 5000
