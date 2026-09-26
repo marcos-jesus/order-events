@@ -42,7 +42,7 @@ services:
     image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest
     container_name: order-events-zabbix-web
     ports:
-      - "8083:8080"
+      - "127.0.0.1:8083:8080"
     environment:
       <<: *zabbix-db
       ZBX_SERVER_HOST: zabbix-server
@@ -91,7 +91,7 @@ services:
     image: grafana/grafana:11.2.0
     container_name: order-events-grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app
       GF_SECURITY_ADMIN_USER: admin
