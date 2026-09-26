@@ -16,7 +16,7 @@ public class InventoryReservationListener {
 
     private static final Logger log = LoggerFactory.getLogger(InventoryReservationListener.class);
 
-    @KafkaListener(id = "inventory-service", topics = KafkaTopics.ORDER_CREATED, groupId = "inventory-service")
+    @KafkaListener(id = "inventory-service", clientIdPrefix = "inventory-service", topics = KafkaTopics.ORDER_CREATED, groupId = "inventory-service")
     public void onOrderCreated(OrderCreatedEvent event) {
         log.debug("[inventory-service] Reservando {} unidade(s) de '{}' para o pedido {}",
                 event.quantity(), event.product(), event.orderId());

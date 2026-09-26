@@ -16,6 +16,7 @@ import org.springframework.test.context.DynamicPropertySource;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -52,6 +53,33 @@ class ObservabilityIntegrationTest extends AbstractPostgresIntegrationTest {
             assertThat(scrape).contains("kafka_consumer_fetch_manager_records_lag_max");
             assertThat(scrape).contains("hikaricp_connections_active");
             assertThat(scrape).contains("orders_dead_lettered_total");
+        });
+    }
+
+    /**
+     * O template do Zabbix depende destes rótulos: o LLD agrupa por messaging_kafka_consumer_group
+     * e separa sucesso de falha por error="none"; o lag é agrupado pelo prefixo estável do client_id.
+     * O billing consome em lote, e o Spring Kafka não faz Observation de listener em lote: ele é
+     * medido por orders.billing.persisted, e não pelo timer spring.kafka.listener.
+     * Um contains("billing-service") solto seria satisfeito por qualquer outra série.
+     */
+    @Test
+    void mantemOsRotulosQueOTemplateDoZabbixUsaPorConsumerGroup() {
+        restTemplate.postForEntity("/orders",
+                new CreateOrderRequest("teclado-mecanico", 1, new BigDecimal("10.00")), OrderCreatedEvent.class);
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
+            String scrape = restTemplate.getForObject("/actuator/prometheus", String.class);
+
+            for (String grupo : List.of("inventory-service", "notification-service")) {
+                assertThat(scrape).containsPattern(
+                        "spring_kafka_listener_seconds_count\\{[^}]*error=\"none\"[^}]*messaging_kafka_consumer_group=\"" + grupo + "\"");
+            }
+            for (String grupo : List.of("inventory-service", "notification-service", "billing-service")) {
+                assertThat(scrape).containsPattern(
+                        "kafka_consumer_fetch_manager_records_lag_max\\{[^}]*client_id=\"" + grupo + "-\\d+\"");
+            }
+            assertThat(scrape).containsPattern("orders_billing_persisted_total\\{[^}]*\\} [1-9]");
         });
     }
 

@@ -16,7 +16,7 @@ public class OrderNotificationListener {
 
     private static final Logger log = LoggerFactory.getLogger(OrderNotificationListener.class);
 
-    @KafkaListener(id = "notification-service", topics = KafkaTopics.ORDER_CREATED, groupId = "notification-service")
+    @KafkaListener(id = "notification-service", clientIdPrefix = "notification-service", topics = KafkaTopics.ORDER_CREATED, groupId = "notification-service")
     public void onOrderCreated(OrderCreatedEvent event) {
         log.debug("[notification-service] Enviando confirmação do pedido {} ({}x {})",
                 event.orderId(), event.quantity(), event.product());
