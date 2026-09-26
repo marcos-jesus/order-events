@@ -6,4 +6,11 @@ SELECT
     pg_database_size(current_database())                                                AS db_size,
     (SELECT count(*) FROM pg_locks)                                                     AS locks,
     COALESCE(pg_total_relation_size(to_regclass('public.billing_record')), 0)           AS billing_size,
-    COALESCE((SELECT n_live_tup FROM pg_stat_user_tables WHERE relname = 'billing_record'), 0) AS billing_rows;
+    COALESCE((SELECT n_live_tup FROM pg_stat_user_tables WHERE relname = 'billing_record'), 0) AS billing_rows,
+    (SELECT tup_inserted FROM pg_stat_database WHERE datname = current_database())      AS tup_inserted,
+    (SELECT tup_updated FROM pg_stat_database WHERE datname = current_database())       AS tup_updated,
+    (SELECT tup_deleted FROM pg_stat_database WHERE datname = current_database())       AS tup_deleted,
+    COALESCE((SELECT n_tup_ins FROM pg_stat_user_tables WHERE relname = 'billing_record'), 0) AS billing_inserted,
+    (SELECT wal_bytes::float8 FROM pg_stat_wal)                                         AS wal_bytes,
+    (SELECT wal_records FROM pg_stat_wal)                                               AS wal_records,
+    (SELECT buffers_checkpoint + buffers_clean + buffers_backend FROM pg_stat_bgwriter) AS buffers_written;

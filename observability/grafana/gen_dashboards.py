@@ -74,6 +74,13 @@ db = dashboard("order-events-db", "Order Events — Banco", [
     panel(5, "Tamanho do banco e da tabela", DB,
           ["PG: database size", "PG: billing_record size"], 0, 12, unit="bytes"),
     panel(6, "Locks", DB, ["PG: locks"], 12, 12),
+    panel(7, "Linhas gravadas/s (insert, update, delete)", DB,
+          ["PG: linhas inseridas/s", "PG: linhas atualizadas/s", "PG: linhas removidas/s"], 0, 20, unit="ops"),
+    panel(8, "Inserts/s em billing_record", DB, ["PG: billing_record inserts/s"], 12, 20, unit="ops"),
+    panel(9, "WAL gerado (bytes/s)", DB, ["PG: WAL gerado"], 0, 28, unit="Bps"),
+    panel(10, "Escrita em disco via buffers (bytes/s)", DB, ["PG: escrita em disco (buffers)"], 12, 28, unit="Bps"),
+    panel(11, "Crescimento de billing_record (bytes/s)", DB, ["PG: billing_record growth"], 0, 36, unit="Bps"),
+    panel(12, "WAL records/s", DB, ["PG: WAL records/s"], 12, 36, unit="ops"),
 ])
 
 OUT.mkdir(exist_ok=True)
