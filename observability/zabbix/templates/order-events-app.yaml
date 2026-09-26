@@ -298,6 +298,8 @@ zabbix_export:
               expression: 'change(/Order Events App/order.dlt.total)>0'
               name: 'order-events: mensagem enviada para a dead-letter topic'
               priority: WARNING
+              recovery_mode: NONE
+              manual_close: 'YES'
       discovery_rules:
         - uuid: '06dcfca41b684370830bd05ae1533655'
           name: 'Kafka listeners'
@@ -310,6 +312,21 @@ zabbix_export:
             - type: PROMETHEUS_TO_JSON
               parameters:
                 - spring_kafka_listener_seconds_count
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var seen = {}, out = [];
+                  JSON.parse(value).forEach(function (row) {
+                    var group = row.labels.messaging_kafka_consumer_group;
+                    if (group && !seen[group]) {
+                      seen[group] = true;
+                      out.push({labels: {messaging_kafka_consumer_group: group}});
+                    }
+                  });
+                  return JSON.stringify(out);
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
           filter:
             evaltype: AND_OR
             conditions:
@@ -372,20 +389,35 @@ zabbix_export:
             - type: PROMETHEUS_TO_JSON
               parameters:
                 - kafka_consumer_fetch_manager_records_lag_max
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var seen = {}, out = [];
+                  JSON.parse(value).forEach(function (row) {
+                    var group = row.labels.client_id.replace(/-\d+$/, '');
+                    if (!seen[group]) {
+                      seen[group] = true;
+                      out.push({labels: {group: group}});
+                    }
+                  });
+                  return JSON.stringify(out);
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
           lld_macro_paths:
-            - lld_macro: '{#CLIENT}'
-              path: $.labels.client_id
+            - lld_macro: '{#GROUP}'
+              path: $.labels.group
           item_prototypes:
             - uuid: 'd11c064b590f435798a0f404d729a34d'
-              name: 'Consumer {#CLIENT}: lag max'
+              name: 'Consumer {#GROUP}: lag max'
               type: DEPENDENT
-              key: 'order.consumer.lag[{#CLIENT}]'
+              key: 'order.consumer.lag[{#GROUP}]'
               delay: '0'
               value_type: FLOAT
               preprocessing:
                 - type: PROMETHEUS_PATTERN
                   parameters:
-                    - 'kafka_consumer_fetch_manager_records_lag_max{client_id="{#CLIENT}"}'
+                    - 'kafka_consumer_fetch_manager_records_lag_max{client_id=~"^{#GROUP}-[0-9]+$"}'
                     - function
                     - max
                   error_handler: CUSTOM_VALUE
@@ -394,6 +426,6 @@ zabbix_export:
                 key: order.prometheus.raw
               trigger_prototypes:
                 - uuid: '2e1efc70c4a3467883bfb7e7e4fdbb15'
-                  expression: 'min(/Order Events App/order.consumer.lag[{#CLIENT}],5m)>{$LAG_MAX}'
-                  name: 'order-events: lag alto no consumer {#CLIENT}'
+                  expression: 'min(/Order Events App/order.consumer.lag[{#GROUP}],5m)>{$LAG_MAX}'
+                  name: 'order-events: lag alto no consumer {#GROUP}'
                   priority: AVERAGE
