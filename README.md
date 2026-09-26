@@ -60,6 +60,34 @@ curl -X POST http://localhost:8080/orders \
 Acompanhe os logs de `inventory-service` e `notification-service` reagindo ao mesmo
 evento, ou inspecione o tópico pelo Kafka UI em `http://localhost:8081`.
 
+## Observabilidade (Zabbix + Grafana)
+
+A app expõe métricas Micrometer em `http://localhost:8080/actuator/prometheus`. O Zabbix as
+coleta (item HTTP agent + itens dependentes) e também monitora o Postgres via Agent2; o
+Grafana exibe tudo pelo datasource do Zabbix. Métricas cobertas: requests HTTP (taxa,
+latência, erros), itens processados e lag por consumer group, mensagens na DLT, pool de
+conexões, JVM e banco (conexões, transações, tamanho, locks, linhas em `billing_record`).
+
+Com o `docker compose up -d` e a app rodando (`./mvnw spring-boot:run`), suba a stack:
+
+```bash
+docker compose -f docker-compose.observability.yml up -d
+```
+
+O container `zabbix-bootstrap` importa os templates e cria os hosts sozinho (leva ~1 min).
+
+| Serviço | URL | Login (somente ambiente local) |
+|---|---|---|
+| Grafana | http://localhost:3000 | `admin` / `admin` |
+| Zabbix | http://localhost:8083 | `Admin` / `zabbix` |
+
+Dashboards no Grafana, pasta **Order Events**: *Aplicação* e *Banco*. Alertas (app fora do ar,
+lag alto, 5xx, pool saturado, DLT, Postgres inacessível) aparecem em Monitoring → Problems
+no Zabbix; os limites são macros do template (`{$LAG_MAX}`, `{$ERR_5XX_MAX}`, ...).
+
+No Linux, se o Zabbix não alcançar a app, libere a porta 8080 para a rede do Docker no
+firewall (o acesso é via `host.docker.internal`).
+
 ## Testes
 
 ```bash
@@ -73,4 +101,4 @@ dedicado ao teste.
 
 ## Stack
 
-Java 21 · Spring Boot 3.3 · Spring Kafka · Spring Web · Bean Validation · JUnit 5 · AssertJ
+Java 21 · Spring Boot 3.3 · Spring Kafka · Spring Web · Bean Validation · JUnit 5 · AssertJ · Actuator · Micrometer · Zabbix · Grafana
