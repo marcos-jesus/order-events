@@ -18,7 +18,7 @@ public class InventoryReservationListener {
 
     @KafkaListener(id = "inventory-service", topics = KafkaTopics.ORDER_CREATED, groupId = "inventory-service")
     public void onOrderCreated(OrderCreatedEvent event) {
-        log.info("[inventory-service] Reservando {} unidade(s) de '{}' para o pedido {}",
+        log.debug("[inventory-service] Reservando {} unidade(s) de '{}' para o pedido {}",
                 event.quantity(), event.product(), event.orderId());
     }
 }

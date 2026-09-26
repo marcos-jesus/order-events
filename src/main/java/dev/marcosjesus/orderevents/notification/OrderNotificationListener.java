@@ -18,7 +18,7 @@ public class OrderNotificationListener {
 
     @KafkaListener(id = "notification-service", topics = KafkaTopics.ORDER_CREATED, groupId = "notification-service")
     public void onOrderCreated(OrderCreatedEvent event) {
-        log.info("[notification-service] Enviando confirmação do pedido {} ({}x {})",
+        log.debug("[notification-service] Enviando confirmação do pedido {} ({}x {})",
                 event.orderId(), event.quantity(), event.product());
     }
 }
