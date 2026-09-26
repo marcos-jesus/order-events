@@ -1,4 +1,4 @@
-# order-events
+# Pedidos arquitetura orientada a eventos.
 
 [![CI](https://github.com/marcos-jesus/order-events/actions/workflows/ci.yml/badge.svg)](https://github.com/marcos-jesus/order-events/actions/workflows/ci.yml)
 
