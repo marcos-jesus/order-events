@@ -144,3 +144,129 @@ zabbix_export:
                 - '$[0].billing_rows'
           master_item:
             key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '60e348b6068a467a827356291699bcb4'
+          name: 'PG: linhas inseridas/s'
+          type: DEPENDENT
+          key: pg.stats.tup_inserted.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].tup_inserted'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '2765afd8378f41a886908aa3071d624a'
+          name: 'PG: linhas atualizadas/s'
+          type: DEPENDENT
+          key: pg.stats.tup_updated.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].tup_updated'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: 'ae3619823b4a42d4bb41d2de45a08ca8'
+          name: 'PG: linhas removidas/s'
+          type: DEPENDENT
+          key: pg.stats.tup_deleted.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].tup_deleted'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '2c71f348ce294c9db5fc4ac2592dc748'
+          name: 'PG: billing_record inserts/s'
+          type: DEPENDENT
+          key: pg.stats.billing_inserted.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].billing_inserted'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '1327d7224d2c4e3382cebc5ee6fb04ae'
+          name: 'PG: billing_record growth'
+          type: DEPENDENT
+          key: pg.stats.billing_size.rate
+          delay: '0'
+          value_type: FLOAT
+          units: Bps
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].billing_size'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '9298db5d01764d8ab02ae3a59d18cfef'
+          name: 'PG: WAL gerado'
+          type: DEPENDENT
+          key: pg.stats.wal_bytes.rate
+          delay: '0'
+          value_type: FLOAT
+          units: Bps
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].wal_bytes'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '6adefe3c3f4043968fe09edcb8002472'
+          name: 'PG: WAL records/s'
+          type: DEPENDENT
+          key: pg.stats.wal_records.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].wal_records'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '717f9ea86a28402f8f4d19e549a0df88'
+          name: 'PG: escrita em disco (buffers)'
+          type: DEPENDENT
+          key: pg.stats.buffers_written.rate
+          delay: '0'
+          value_type: FLOAT
+          units: Bps
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].buffers_written'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+            - type: MULTIPLIER
+              parameters:
+                - '8192'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'

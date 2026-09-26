@@ -1,6 +1,7 @@
 # Observabilidade: Zabbix (coleta/alertas) + Grafana (dashboards).
-# Pré-requisito: `docker compose up -d` (Postgres da app em localhost:5432) e a app em localhost:8080.
-# Subir: docker compose -f docker-compose.observability.yml up -d
+# Já é incluído pelo docker-compose.yml (`docker compose up -d`). Para subir só esta stack:
+# `docker compose -f docker-compose.observability.yml up -d`, com o Postgres da app em
+# localhost:5432 e a app em localhost:8080 (em container ou via ./mvnw spring-boot:run).
 name: order-events-observability
 
 x-host-gateway: &host-gateway

@@ -56,17 +56,24 @@ em vez de travar a partição ou perder o evento.
 
 ## Rodando localmente
 
-Sobe o Kafka (modo KRaft, sem Zookeeper), o [Kafka UI](https://github.com/provectus/kafka-ui)
-para inspecionar tópicos e mensagens, e o Postgres onde o `billing-service` persiste o
-faturamento:
+Um comando sobe tudo: o Kafka (modo KRaft, sem Zookeeper), o [Kafka UI](https://github.com/provectus/kafka-ui)
+para inspecionar tópicos e mensagens, o Postgres onde o `billing-service` persiste o
+faturamento, a própria aplicação (imagem construída pelo `Dockerfile`) e a observabilidade
+(Zabbix + Grafana):
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-Roda a aplicação (o Flyway cria o schema do Postgres automaticamente no boot):
+O Flyway cria o schema do Postgres automaticamente no boot da app. A app só inicia depois que
+Kafka e Postgres estão saudáveis, e o primeiro `--build` leva alguns minutos (baixa as
+dependências do Maven; os builds seguintes usam cache).
+
+Para desenvolver com a app fora do container (hot reload, debugger), suba só a infra e rode
+o Maven:
 
 ```bash
+docker compose up -d kafka kafka-ui postgres
 ./mvnw spring-boot:run
 ```
 
@@ -95,7 +102,8 @@ Grafana exibe tudo pelo datasource do Zabbix. Métricas cobertas: requests HTTP 
 latência, erros), itens processados e lag por consumer group, mensagens na DLT, pool de
 conexões, JVM e banco (conexões, transações, tamanho, locks, linhas em `billing_record`).
 
-Com o `docker compose up -d` e a app rodando (`./mvnw spring-boot:run`), suba a stack:
+Já vem no `docker compose up -d`. Para subir só a observabilidade (com Postgres e app já
+rodando, em container ou via `./mvnw spring-boot:run`):
 
 ```bash
 docker compose -f docker-compose.observability.yml up -d

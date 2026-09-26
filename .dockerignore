@@ -1,0 +1,8 @@
+.git
+.idea
+.vscode
+target
+docs
+observability
+docker-compose*.yml
+*.md
