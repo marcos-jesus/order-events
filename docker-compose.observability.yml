@@ -1,0 +1,108 @@
+# Observabilidade: Zabbix (coleta/alertas) + Grafana (dashboards).
+# Pré-requisito: `docker compose up -d` (Postgres da app em localhost:5432) e a app em localhost:8080.
+# Subir: docker compose -f docker-compose.observability.yml up -d
+name: order-events-observability
+
+x-host-gateway: &host-gateway
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+x-zabbix-db: &zabbix-db
+  DB_SERVER_HOST: zabbix-db
+  POSTGRES_USER: zabbix
+  POSTGRES_PASSWORD: zabbix
+  POSTGRES_DB: zabbix
+
+services:
+  zabbix-db:
+    image: postgres:16-alpine
+    container_name: order-events-zabbix-db
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    volumes:
+      - zabbix-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zabbix"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0-latest
+    container_name: order-events-zabbix-server
+    environment: *zabbix-db
+    <<: *host-gateway
+    depends_on:
+      zabbix-db:
+        condition: service_healthy
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest
+    container_name: order-events-zabbix-web
+    ports:
+      - "8083:8080"
+    environment:
+      <<: *zabbix-db
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: America/Sao_Paulo
+    depends_on:
+      - zabbix-server
+
+  zabbix-agent2:
+    image: zabbix/zabbix-agent2:alpine-7.0-latest
+    container_name: order-events-zabbix-agent2
+    environment:
+      ZBX_HOSTNAME: order-events-postgres
+      ZBX_SERVER_HOST: zabbix-server
+    <<: *host-gateway
+    volumes:
+      - ./observability/agent2/postgresql.conf:/etc/zabbix/zabbix_agent2.d/plugins.d/order-events-postgresql.conf:ro
+      - ./observability/agent2/custom-queries:/etc/zabbix/custom-queries:ro
+    depends_on:
+      postgres-monitor-user:
+        condition: service_completed_successfully
+
+  postgres-monitor-user:
+    image: postgres:16-alpine
+    container_name: order-events-postgres-monitor-user
+    restart: on-failure
+    environment:
+      PGPASSWORD: order_events
+    <<: *host-gateway
+    volumes:
+      - ./observability/postgres/init-monitor-user.sql:/init.sql:ro
+    command: ["psql", "-h", "host.docker.internal", "-U", "order_events", "-d", "order_events", "-v", "ON_ERROR_STOP=1", "-f", "/init.sql"]
+
+  zabbix-bootstrap:
+    image: alpine:3.20
+    container_name: order-events-zabbix-bootstrap
+    restart: on-failure
+    environment:
+      ZBX_URL: http://zabbix-web:8080/api_jsonrpc.php
+    volumes:
+      - ./observability/zabbix:/zabbix:ro
+    command: ["sh", "-c", "apk add --no-cache curl jq >/dev/null && sh /zabbix/bootstrap.sh"]
+    depends_on:
+      - zabbix-web
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: order-events-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - zabbix-web
+
+volumes:
+  zabbix-db-data:
+  grafana-data:
