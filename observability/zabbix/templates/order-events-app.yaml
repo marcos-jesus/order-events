@@ -1,0 +1,431 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 'b0f4e018d91b4735b2133ed6432b0c05'
+      name: 'Templates/Order Events'
+  templates:
+    - uuid: '95bd158b11d04e32abe339bb33ed6a02'
+      template: 'Order Events App'
+      name: 'Order Events App'
+      description: 'Métricas do order-events lidas de /actuator/prometheus (Micrometer).'
+      groups:
+        - name: 'Templates/Order Events'
+      macros:
+        - macro: '{$APP_URL}'
+          value: 'http://host.docker.internal:8080'
+        - macro: '{$LAG_MAX}'
+          value: '1000'
+        - macro: '{$ERR_5XX_MAX}'
+          value: '0.5'
+        - macro: '{$HIKARI_USED_PCT}'
+          value: '90'
+      items:
+        - uuid: '7aa0bc4e6bba4ca9a9a6a390189b291c'
+          name: 'Prometheus raw'
+          type: HTTP_AGENT
+          key: order.prometheus.raw
+          delay: 30s
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          url: '{$APP_URL}/actuator/prometheus'
+          timeout: 10s
+        - uuid: '8bb125eb700748c289ad5168534e4b1c'
+          name: 'App: health'
+          type: HTTP_AGENT
+          key: order.health
+          delay: 30s
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          url: '{$APP_URL}/actuator/health'
+          timeout: 10s
+          status_codes: '200,503'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.status
+          triggers:
+            - uuid: '96236dc6b7aa48569b9752438118fae6'
+              expression: 'last(/Order Events App/order.health)<>"UP" or nodata(/Order Events App/order.health,3m)=1'
+              name: 'order-events: aplicação fora do ar'
+              priority: DISASTER
+        - uuid: '679a132ba589432284eccc1ccccd8811'
+          name: 'App: up'
+          type: DEPENDENT
+          key: order.up
+          delay: '0'
+          history: 7d
+          description: '1 quando /actuator/health responde UP, 0 caso contrário (usado nos dashboards).'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '^(UP)$'
+                - '1'
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.health
+        - uuid: 'a22ba510f0c84f588ed6357719d7acb7'
+          name: 'HTTP: requests/s'
+          type: DEPENDENT
+          key: order.http.requests.rate
+          delay: '0'
+          value_type: FLOAT
+          units: rps
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'http_server_requests_seconds_count{uri!~"/actuator.*"}'
+                - function
+                - sum
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: 'e2d22f4af432403db6e5f48a0b86b052'
+          name: 'HTTP: 4xx/s'
+          type: DEPENDENT
+          key: order.http.4xx.rate
+          delay: '0'
+          value_type: FLOAT
+          units: rps
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'http_server_requests_seconds_count{outcome="CLIENT_ERROR",uri!~"/actuator.*"}'
+                - function
+                - sum
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '910f1297fd4c4c7ca826db74e41941ef'
+          name: 'HTTP: 5xx/s'
+          type: DEPENDENT
+          key: order.http.5xx.rate
+          delay: '0'
+          value_type: FLOAT
+          units: rps
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'http_server_requests_seconds_count{outcome="SERVER_ERROR",uri!~"/actuator.*"}'
+                - function
+                - sum
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+          triggers:
+            - uuid: '45624e0bb4aa416fb253c5a594621944'
+              expression: 'min(/Order Events App/order.http.5xx.rate,5m)>{$ERR_5XX_MAX}'
+              name: 'order-events: taxa de erros 5xx alta'
+              priority: HIGH
+        - uuid: '9dddf7003dcd463d8e03edb8ce0b9abf'
+          name: 'HTTP: time sum/s'
+          type: DEPENDENT
+          key: order.http.time.rate
+          delay: '0'
+          value_type: FLOAT
+          units: s
+          description: 'Auxiliar da latência média (soma dos tempos por segundo).'
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'http_server_requests_seconds_sum{uri!~"/actuator.*"}'
+                - function
+                - sum
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: 'e4c04792b1ba4f37b7f18595bade980e'
+          name: 'HTTP: avg latency'
+          type: CALCULATED
+          key: order.http.latency.avg
+          delay: 30s
+          value_type: FLOAT
+          units: s
+          params: 'last(//order.http.time.rate) / max(last(//order.http.requests.rate), 0.000001)'
+        - uuid: 'c4083cb3abd04708a6ecaa6011b05964'
+          name: 'HTTP: max latency'
+          type: DEPENDENT
+          key: order.http.latency.max
+          delay: '0'
+          value_type: FLOAT
+          units: s
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'http_server_requests_seconds_max{uri!~"/actuator.*"}'
+                - function
+                - max
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.prometheus.raw
+        - uuid: 'd5a741be258e448184e08e59c623d460'
+          name: 'JVM: heap used'
+          type: DEPENDENT
+          key: order.jvm.heap.used
+          delay: '0'
+          value_type: FLOAT
+          units: B
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - 'jvm_memory_used_bytes{area="heap"}'
+                - function
+                - sum
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '3d0e8bb142114ce3bfb9d402d9693639'
+          name: 'JVM: threads live'
+          type: DEPENDENT
+          key: order.jvm.threads.live
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - jvm_threads_live_threads
+                - value
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '3c2c437e779e4ba4b7c3f8013b5f09ea'
+          name: 'Hikari: active connections'
+          type: DEPENDENT
+          key: order.hikari.active
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - hikaricp_connections_active
+                - function
+                - sum
+          master_item:
+            key: order.prometheus.raw
+          triggers:
+            - uuid: '8b44072cb95c48f2843e5cdfc29b3c35'
+              expression: 'min(/Order Events App/order.hikari.active,3m) >= last(/Order Events App/order.hikari.max) * {$HIKARI_USED_PCT} / 100'
+              name: 'order-events: pool de conexões do banco saturado'
+              priority: HIGH
+        - uuid: '15a3f5c88f9245059176160004f3f20f'
+          name: 'Hikari: max connections'
+          type: DEPENDENT
+          key: order.hikari.max
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - hikaricp_connections_max
+                - function
+                - sum
+          master_item:
+            key: order.prometheus.raw
+        - uuid: 'e694a759301e4a7a9800d75fb7057c0c'
+          name: 'Billing: persisted/s'
+          type: DEPENDENT
+          key: order.billing.persisted.rate
+          delay: '0'
+          value_type: FLOAT
+          units: eps
+          description: 'Faturamentos gravados no banco por segundo (contados por item, não por lote).'
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - orders_billing_persisted_total
+                - value
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '401add0076c84d4e823660724038b917'
+          name: 'Billing: batch size max'
+          type: DEPENDENT
+          key: order.billing.batch.size.max
+          delay: '0'
+          value_type: FLOAT
+          description: 'Maior lote gravado na janela recente (limite: order-events.billing.batch-size).'
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - orders_billing_batch_size_max
+                - value
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.prometheus.raw
+        - uuid: '3a78e6d3521149a8a7aa33e17f9550f2'
+          name: 'DLT: messages total'
+          type: DEPENDENT
+          key: order.dlt.total
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: PROMETHEUS_PATTERN
+              parameters:
+                - orders_dead_lettered_total
+                - value
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
+          master_item:
+            key: order.prometheus.raw
+          triggers:
+            - uuid: '655109da1b4f473d85d6ffc53c80ba73'
+              expression: 'change(/Order Events App/order.dlt.total)>0'
+              name: 'order-events: mensagem enviada para a dead-letter topic'
+              priority: WARNING
+              recovery_mode: NONE
+              manual_close: 'YES'
+      discovery_rules:
+        - uuid: '06dcfca41b684370830bd05ae1533655'
+          name: 'Kafka listeners'
+          type: DEPENDENT
+          key: order.listeners.discovery
+          delay: '0'
+          master_item:
+            key: order.prometheus.raw
+          preprocessing:
+            - type: PROMETHEUS_TO_JSON
+              parameters:
+                - spring_kafka_listener_seconds_count
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var seen = {}, out = [];
+                  JSON.parse(value).forEach(function (row) {
+                    var group = row.labels.messaging_kafka_consumer_group;
+                    if (group && !seen[group]) {
+                      seen[group] = true;
+                      out.push({labels: {messaging_kafka_consumer_group: group}});
+                    }
+                  });
+                  return JSON.stringify(out);
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
+          filter:
+            evaltype: AND_OR
+            conditions:
+              - macro: '{#LISTENER}'
+                value: '^billing-service$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: A
+          lld_macro_paths:
+            - lld_macro: '{#LISTENER}'
+              path: $.labels.messaging_kafka_consumer_group
+          item_prototypes:
+            - uuid: '64c5ff28eaaa435d9dc895ca89d2c58d'
+              name: 'Listener {#LISTENER}: processed/s'
+              type: DEPENDENT
+              key: 'order.listener.processed.rate[{#LISTENER}]'
+              delay: '0'
+              value_type: FLOAT
+              units: eps
+              preprocessing:
+                - type: PROMETHEUS_PATTERN
+                  parameters:
+                    - 'spring_kafka_listener_seconds_count{messaging_kafka_consumer_group="{#LISTENER}",error="none"}'
+                    - function
+                    - sum
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: '0'
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              master_item:
+                key: order.prometheus.raw
+            - uuid: 'a0145d26aeb44f70b0711b3dc7d57932'
+              name: 'Listener {#LISTENER}: failed/s'
+              type: DEPENDENT
+              key: 'order.listener.failed.rate[{#LISTENER}]'
+              delay: '0'
+              value_type: FLOAT
+              units: eps
+              preprocessing:
+                - type: PROMETHEUS_PATTERN
+                  parameters:
+                    - 'spring_kafka_listener_seconds_count{messaging_kafka_consumer_group="{#LISTENER}",error!="none"}'
+                    - function
+                    - sum
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: '0'
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              master_item:
+                key: order.prometheus.raw
+        - uuid: '11b97b91bacd4ee0b1493b7c616fccf4'
+          name: 'Kafka consumers'
+          type: DEPENDENT
+          key: order.consumers.discovery
+          delay: '0'
+          master_item:
+            key: order.prometheus.raw
+          preprocessing:
+            - type: PROMETHEUS_TO_JSON
+              parameters:
+                - kafka_consumer_fetch_manager_records_lag_max
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var seen = {}, out = [];
+                  JSON.parse(value).forEach(function (row) {
+                    var group = row.labels.client_id.replace(/-\d+$/, '');
+                    if (!seen[group]) {
+                      seen[group] = true;
+                      out.push({labels: {group: group}});
+                    }
+                  });
+                  return JSON.stringify(out);
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
+          lld_macro_paths:
+            - lld_macro: '{#GROUP}'
+              path: $.labels.group
+          item_prototypes:
+            - uuid: 'd11c064b590f435798a0f404d729a34d'
+              name: 'Consumer {#GROUP}: lag max'
+              type: DEPENDENT
+              key: 'order.consumer.lag[{#GROUP}]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: PROMETHEUS_PATTERN
+                  parameters:
+                    - 'kafka_consumer_fetch_manager_records_lag_max{client_id=~"^{#GROUP}-[0-9]+$"}'
+                    - function
+                    - max
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: '0'
+              master_item:
+                key: order.prometheus.raw
+              trigger_prototypes:
+                - uuid: '2e1efc70c4a3467883bfb7e7e4fdbb15'
+                  expression: 'min(/Order Events App/order.consumer.lag[{#GROUP}],5m)>{$LAG_MAX}'
+                  name: 'order-events: lag alto no consumer {#GROUP}'
+                  priority: AVERAGE

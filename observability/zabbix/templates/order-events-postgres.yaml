@@ -1,0 +1,146 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 'b0f4e018d91b4735b2133ed6432b0c05'
+      name: 'Templates/Order Events'
+  templates:
+    - uuid: 'ef5b5119a7464f9aac9ac4227d3325ac'
+      template: 'Order Events Postgres'
+      name: 'Order Events Postgres'
+      description: 'Postgres do order-events via Zabbix Agent2 (plugin PostgreSQL) e query custom stats.sql.'
+      groups:
+        - name: 'Templates/Order Events'
+      macros:
+        - macro: '{$PG.SESSION}'
+          value: app
+        - macro: '{$PG.CONN_PCT}'
+          value: '80'
+      items:
+        - uuid: '83301c846a92448db4c731aaabeb616b'
+          name: 'PG: ping'
+          key: 'pgsql.ping[{$PG.SESSION}]'
+          delay: 30s
+          history: 7d
+          triggers:
+            - uuid: '9659f70fea0a4442ae767165ec85ef8c'
+              expression: 'last(/Order Events Postgres/pgsql.ping[{$PG.SESSION}])=0 or nodata(/Order Events Postgres/pgsql.ping[{$PG.SESSION}],3m)=1'
+              name: 'order-events: Postgres inacessível'
+              priority: DISASTER
+        - uuid: '3d1c00c84d9448a0afc09c9a2201da4c'
+          name: 'PG: stats raw'
+          key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+          delay: 30s
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+        - uuid: 'a80e7a858d504b5282abcc2bf9a12eae'
+          name: 'PG: connections'
+          type: DEPENDENT
+          key: pg.stats.connections
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].connections'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '331554588bae483eae904ca34539575d'
+          name: 'PG: max connections'
+          type: DEPENDENT
+          key: pg.stats.max_connections
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].max_connections'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '0431b148e7d249cf911638063708be7e'
+          name: 'PG: connections %'
+          type: CALCULATED
+          key: pg.stats.connections.pct
+          delay: 30s
+          value_type: FLOAT
+          units: '%'
+          params: 'last(//pg.stats.connections) / max(last(//pg.stats.max_connections), 1) * 100'
+          triggers:
+            - uuid: '5304c17502cd478198f10729a68a515d'
+              expression: 'min(/Order Events Postgres/pg.stats.connections.pct,5m)>{$PG.CONN_PCT}'
+              name: 'order-events: conexões do Postgres próximas do máximo'
+              priority: HIGH
+        - uuid: '6d51b0d8e2c84c61b3154d3e4e355da0'
+          name: 'PG: commits/s'
+          type: DEPENDENT
+          key: pg.stats.commits.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].xact_commit'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: 'fea755e41e4b49ce91f0a4c89eb86c04'
+          name: 'PG: rollbacks/s'
+          type: DEPENDENT
+          key: pg.stats.rollbacks.rate
+          delay: '0'
+          value_type: FLOAT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].xact_rollback'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '6a47571e23064ac998cd4b36555a4720'
+          name: 'PG: database size'
+          type: DEPENDENT
+          key: pg.stats.db_size
+          delay: '0'
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].db_size'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '16f509c6fdd34bc7bc78434afa63efac'
+          name: 'PG: locks'
+          type: DEPENDENT
+          key: pg.stats.locks
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].locks'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '83249a974ea247aeac1850fcdef6b97b'
+          name: 'PG: billing_record size'
+          type: DEPENDENT
+          key: pg.stats.billing_size
+          delay: '0'
+          units: B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].billing_size'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'
+        - uuid: '623dcec2a70742538d29ad35a6a77d61'
+          name: 'PG: billing_record rows'
+          type: DEPENDENT
+          key: pg.stats.billing_rows
+          delay: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[0].billing_rows'
+          master_item:
+            key: 'pgsql.custom.query[{$PG.SESSION},,,,stats]'

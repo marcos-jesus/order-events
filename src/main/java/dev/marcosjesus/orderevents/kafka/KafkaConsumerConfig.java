@@ -1,5 +1,6 @@
 package dev.marcosjesus.orderevents.kafka;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +18,11 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConsumerConfig {
 
     @Bean
-    public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<Object, Object> kafkaTemplate) {
+    public CommonErrorHandler kafkaErrorHandler(KafkaTemplate<Object, Object> kafkaTemplate, MeterRegistry meterRegistry) {
         var recoverer = new DeadLetterPublishingRecoverer(
                 kafkaTemplate,
                 (record, exception) -> new TopicPartition(record.topic() + ".DLT", record.partition())
         );
-        return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L));
+        return new DefaultErrorHandler(new CountingRecoverer(recoverer, meterRegistry), new FixedBackOff(1000L, 3L));
     }
 }
